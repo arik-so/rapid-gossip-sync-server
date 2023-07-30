@@ -43,9 +43,15 @@ impl ChainVerifier {
 		let output_index = (short_channel_id & 0xffff) as u16;
 
 		let mut block = Self::retrieve_block(client, block_height).await?;
-		if transaction_index as usize >= block.txdata.len() { return Err(UtxoLookupError::UnknownTx); }
+		if transaction_index as usize >= block.txdata.len() {
+			eprintln!("Could't find transaction {} in block {}", transaction_index, block_height);
+			return Err(UtxoLookupError::UnknownTx);
+		}
 		let mut transaction = block.txdata.swap_remove(transaction_index as usize);
-		if output_index as usize >= transaction.output.len() { return Err(UtxoLookupError::UnknownTx); }
+		if output_index as usize >= transaction.output.len() {
+			eprintln!("Could't find output {} in transaction {}", output_index, transaction.txid());
+			return Err(UtxoLookupError::UnknownTx);
+		}
 		Ok(transaction.output.swap_remove(output_index as usize))
 	}
 
