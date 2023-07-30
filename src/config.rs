@@ -35,6 +35,19 @@ pub(crate) fn network() -> Network {
 	}
 }
 
+pub(crate) fn log_level() -> lightning::util::logger::Level {
+	let level = env::var("RAPID_GOSSIP_SYNC_SERVER_LOG_LEVEL").unwrap_or("info".to_string()).to_lowercase();
+	match level.as_str() {
+		"gossip" => lightning::util::logger::Level::Gossip,
+		"trace" => lightning::util::logger::Level::Trace,
+		"debug" => lightning::util::logger::Level::Debug,
+		"info" => lightning::util::logger::Level::Info,
+		"warn" => lightning::util::logger::Level::Warn,
+		"error" => lightning::util::logger::Level::Error,
+		_ => panic!("Invalid log level"),
+	}
+}
+
 pub(crate) fn network_graph_cache_path() -> String {
 	format!("{}/network_graph.bin", cache_path())
 }
@@ -46,13 +59,19 @@ pub(crate) fn cache_path() -> String {
 
 pub(crate) fn db_connection_config() -> Config {
 	let mut config = Config::new();
-	let host = env::var("RAPID_GOSSIP_SYNC_SERVER_DB_HOST").unwrap_or("localhost".to_string());
-	let user = env::var("RAPID_GOSSIP_SYNC_SERVER_DB_USER").unwrap_or("alice".to_string());
-	let db = env::var("RAPID_GOSSIP_SYNC_SERVER_DB_NAME").unwrap_or("ln_graph_sync".to_string());
+	let env_name_prefix = if cfg!(test) {
+		"RAPID_GOSSIP_TEST_DB"
+	} else {
+		"RAPID_GOSSIP_SYNC_SERVER_DB"
+	};
+
+	let host = env::var(format!("{}{}", env_name_prefix, "_HOST")).unwrap_or("localhost".to_string());
+	let user = env::var(format!("{}{}", env_name_prefix, "_USER")).unwrap_or("alice".to_string());
+	let db = env::var(format!("{}{}", env_name_prefix, "_NAME")).unwrap_or("ln_graph_sync".to_string());
 	config.host(&host);
 	config.user(&user);
 	config.dbname(&db);
-	if let Ok(password) = env::var("RAPID_GOSSIP_SYNC_SERVER_DB_PASSWORD") {
+	if let Ok(password) = env::var(format!("{}{}", env_name_prefix, "_PASSWORD")) {
 		config.password(&password);
 	}
 	config

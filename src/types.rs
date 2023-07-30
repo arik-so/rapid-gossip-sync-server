@@ -5,6 +5,7 @@ use lightning::sign::KeysManager;
 use lightning::ln::msgs::{ChannelAnnouncement, ChannelUpdate};
 use lightning::ln::peer_handler::{ErroringMessageHandler, IgnoringMessageHandler, PeerManager};
 use lightning::util::logger::{Logger, Record};
+use crate::config;
 
 use crate::downloader::GossipRouter;
 use crate::verifier::ChainVerifier;
@@ -20,6 +21,7 @@ pub(crate) enum GossipMessage {
 
 #[derive(Clone, Copy)]
 pub(crate) struct TestLogger {}
+
 impl Deref for TestLogger {
 	type Target = Self;
 	fn deref(&self) -> &Self { self }
@@ -33,7 +35,10 @@ impl TestLogger {
 
 impl Logger for TestLogger {
 	fn log(&self, record: &Record) {
-		// TODO: allow log level threshold to be set
+		let threshold = config::log_level();
+		if record.level < threshold {
+			return;
+		}
 		println!("{:<5} [{} : {}, {}] {}", record.level.to_string(), record.module_path, record.file, record.line, record.args);
 	}
 }
