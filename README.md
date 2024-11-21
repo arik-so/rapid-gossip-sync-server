@@ -5,6 +5,25 @@ gossip data.
 
 These are the components it's comprised of.
 
+## Demo Server
+
+To experiment with a local instance of the RGS server, navigate to the cache directory specified using
+the `RAPID_GOSSIP_SYNC_SERVER_CACHES_PATH` environment variable (`./res` by default) and therein to the `symlinks`
+subdirectory:
+
+```
+<cache_path>/symlinks
+```
+
+From there, simply run:
+
+```shell
+python3 -m http.server 8011
+```
+
+The snapshots will be accessible via `http://localhost:8011/{timestamp}.bin`. The first timestamp value should be 0,
+and subsequent timestamps will be extracted from the snapshots themselves by the RGS client.
+
 ## Modules
 
 ### config
